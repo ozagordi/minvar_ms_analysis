@@ -1,0 +1,55 @@
+# reference and MiSeq samples
+REF = './db/consensus_B.fna'
+SAMPLESDIR = 'raw_fastq'
+RECAL_EXE = './recal_fastq.py'
+SAMPLES = ['%d_S%d' % (i, i - 8) for i in range(9, 10)]
+
+rule all:
+    input:
+        #expand("mapped_{sample}/recal_{sample}.fastq", sample=SAMPLES)
+        #'samples.txt'
+        'VirVarSeq.log'
+rule refindex:
+    input:
+        REF
+    output:
+        "tmpref.bwt"
+    shell:
+        "bwa index -p tmpref {REF}"
+
+rule align:
+    input:
+        "/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls/{id}_L001_R1_001.fastq.gz",
+        "tmpref.bwt"
+    output:
+        "Sample_mapped_{id}/{id}.bam"
+    shell:
+        "/bin/bash -c \"bwa mem -t 12 -O 12 tmpref <(seqtk sample {input[0]} 20000) | samtools view -u - | samtools sort -f - {output}\""
+
+rule recal:
+    input:
+        "Sample_mapped_{id}/{id}.bam"
+    output:
+        "Sample_mapped_{id}/recal_{id}_L001_R1_001.fastq.gz"
+    message:
+        "Executing recal on the following files {input}."
+    shell:
+        "{RECAL_EXE} {input} | gzip - > {output}; rm -f grouped.* known.* subsampled.* recal_data.grp tmpref.*"
+
+rule virvarseq_samples:
+    input:
+        expand("Sample_mapped_{sample}/recal_{sample}_L001_R1_001.fastq.gz", sample=SAMPLES)
+    output:
+        'samples.txt'
+    run:
+        with open('samples.txt', 'w') as h:
+            for sample in SAMPLES:
+                print('mapped_%s' % sample, file=h)
+
+rule virvarseq:
+    input:
+        'samples.txt'
+    output:
+        'VirVarSeq.log'
+    shell:
+        '/bin/bash run.sh'

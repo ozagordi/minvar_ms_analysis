@@ -1,0 +1,6 @@
+.snakemake
+Sample_mapped_*
+VirVarSeq.log
+VirVarSeq_results*
+raw_fastq
+samples.txt

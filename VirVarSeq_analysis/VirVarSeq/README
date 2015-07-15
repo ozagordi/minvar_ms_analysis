@@ -1,0 +1,560 @@
+VirVarSeq
+=========
+
+General Description
+-------------------
+
+VirVarSeq is a toolset designed to call variants at codon level in viral populations from deep sequencing data. 
+The pipeline starts from short-read sequences and a reference genome. 
+It reports a codon table filtered based on the quality scores. 
+A more detailed description along with the options will follow.
+
+* The toolset/pipeline consists of several components: 
+
+1) Mapping versus Reference (map_vs_ref.pl). 
+   Variant inference in viral populations starts by aligning the reads to a reference genome. 
+   
+2) Determination of Consensus Sequence (consensus.pl). 
+   The reference genome may contain bases that do not represent the majority of the reads. 
+   Based on the previous alignment, the consensus at each position of the reference genome will be determined. 
+
+3) Mapping versus Consensus (map_vs_consensus.pl). 
+   The sequence reads will be realigned against the consensus sequence to increase mapping accuracy. 
+
+4) Q-cpileup. 
+   A codon table will be constructed where the number of false positives is reduced by exploiting the quality scores of the nucleotides. 
+   The method is adaptive to allow differences in qualities between the runs.  
+   It consists out of three consecutive analysis steps. 
+   
+4.1) Retrieve the quality of codons (codon_table.pl)
+4.2) Determine Q-intersection threshold (mixture_model.pl)
+4.3) Filtering and reporting of codon table
+
+
+Citing VirVarSeq
+----------------
+Verbist B.M.P., Thys K., Reumers J., Wetzels Y., Van Der Borght K., Talloen W., Aerssens J., Clement L., Thas O. (2014) Quality based adaptive filtering to increase specificity of low frequency variant detection. Bioinformatics (submitted)     
+
+
+Prerequisites
+--------------
+1) BWA 
+   BWA is a software package used for mapping short-read sequences against a reference genome or the consensus sequence calculated in the pipeline. 	
+   It is available at: http://bio-bwa.sourceforge.net/. 
+   VirVarSeq is recently tested with version 0.7.5a.
+
+2) R. 
+   R is a software environment for statistical computing used by Q-cpileup. 
+   It is available at: http://www.r-project.org/. 
+   The R-package rmgt is embedded in the pipeline. 
+   It is an R-wrapper to run the original Fortran code of McLachlan described in Biometrics (1988, 44, 571-578) which fits truncated mixture models.  
+   The R-package is also used to produce some diagnostic plots to judge if chosen thresholds are acceptable and/or interpretable.  (see paper Q-cpileup)
+   VirVarSeq is recently tested with version R 3.0.1
+
+3) Fortran.  
+   A fortran compiler is necessary to be able to run the R-package rmgt. 
+   A compiler can be downloaded from http://gcc.gnu.org/fortran/. 
+
+4) Perl.
+   Perl is a high-level, general-purpose, interpreted, dynamic programming languages. 
+   It is available at: http://www.perl.org/.
+   VirVarSeq is recently tested with version v5.10.1.
+
+5) Perl Modules.
+   Following Perl module(s) are used by VirVarSeq:
+   
+		- Statistics::Basic
+
+	
+   
+Support
+-------
+First, read this README file.
+
+
+Download
+--------
+
+	https://sourceforge.net/projects/virtools/
+
+	
+Data Description
+----------------
+
+The pipeline can be tested using the mixtures of HCV plasmids, also described in Verbist et al.[1] to assess the filtering accuracy of Q-cpileup, one of the components in the pipeline. 
+Two different HCV plasmids were used, each comprising the viral NS3-4A fragment. Site-directed mutations have been introduced into the con1b replicon plasmid pFK_i341_PI Luc_NS3-3._ET (wild type) as described earlier[2],[3]. 
+These plasmids, wild type and mutant, differ only in two codons (5 single nucleotides), as confirmed by Sanger sequencing. 
+The HCV plasmid carrying the mutations is mixed into the wild type HCV plasmid at different proportions (1:10, 1:50, 1:100, 1:200).  
+Following manufacturing protocols, decribed in Thys et al.[4], the mixtures together with the WT and mutant are paired-end sequenced on Illumina GAIIx using 147 cycles. 
+The fastq  data from the 6 different samples can be downloaded from the European Nucleotide Archive, accession number PRJEB5028. 
+
+The reference genome used is hepatitis C virus type1b complete genome, isolate Con1 with GenBank ID AJ238799.1 which can be downloaded from http://www.ncbi.nlm.nih.gov/nuccore/AJ238799
+
+
+Getting Started
+---------------
+
+1) Download VirVarSeq.tar.gz from
+
+	https://sourceforge.net/projects/virtools/
+  
+2) Unzip/Untar VirVarSeq.tar.gz 
+   
+	[ec2-user@ip-10-34-219-157 ~]$ pwd
+	/home/ec2-user
+		
+	[ec2-user@ip-10-34-219-157 ~]$ tar xvfz VirVarSeq.tar.gz
+	VirVarSeq/
+	VirVarSeq/lib/
+	VirVarSeq/lib/Files.pm
+	VirVarSeq/lib/Log.pm
+	VirVarSeq/lib/Seq/
+	VirVarSeq/lib/Seq/Utilities.pm
+	VirVarSeq/lib/Seq/Consensus.pm
+	VirVarSeq/lib/Seq/Constants.pm
+	VirVarSeq/lib/BWA/
+	VirVarSeq/lib/BWA/BWA.pm
+	VirVarSeq/run.sh
+	VirVarSeq/R/
+	VirVarSeq/R/lib/
+	VirVarSeq/R/mixtureModel.R
+	VirVarSeq/R/packages/
+	VirVarSeq/R/packages/rmgt_0.9.001.tar.gz
+	VirVarSeq/README	
+	VirVarSeq/map_vs_ref.pl	
+	VirVarSeq/consensus.pl	
+	VirVarSeq/map_vs_consensus.pl	
+	VirVarSeq/codon_table.pl	
+	VirVarSeq/mixture_model.pl	
+	VirVarSeq/testdata/
+	VirVarSeq/testdata/fastq/
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_2/
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_2/110901_6_12_random_2_CTTGTA_L006_R2_001.fastq.gz
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_2/110901_6_12_random_2_CTTGTA_L006_R1_001.fastq.gz
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_1/
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_1/110901_6_12_random_1_CTTGTA_L006_R2_001.fastq.gz
+	VirVarSeq/testdata/fastq/Sample_110901_6_12_random_1/110901_6_12_random_1_CTTGTA_L006_R1_001.fastq.gz
+	VirVarSeq/testdata/ref/
+	VirVarSeq/testdata/ref/1b_con1_AJ238799.NCBI.fa
+	VirVarSeq/testdata/samples.txt
+
+
+3) Install the R package "rmgt" (included in the distribution file VirVarSeq.tar.gz, <install_dir>/R/packages/rmgt_0.9.001.tar.gz)
+
+	[ec2-user@ip-10-34-219-157 ~]$ cd VirVarSeq
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ R --no-save --no-restore
+
+	R version 3.0.1 (2013-05-16) -- "Good Sport"
+	Copyright (C) 2013 The R Foundation for Statistical Computing
+	Platform: x86_64-redhat-linux-gnu (64-bit)
+
+	R is free software and comes with ABSOLUTELY NO WARRANTY.
+	You are welcome to redistribute it under certain conditions.
+	Type 'license()' or 'licence()' for distribution details.
+
+	Natural language support but running in an English locale
+
+	R is a collaborative project with many contributors.
+	Type 'contributors()' for more information and
+	'citation()' on how to cite R or R packages in publications.
+
+	Type 'demo()' for some demos, 'help()' for on-line help, or
+	'help.start()' for an HTML browser interface to help.
+	Type 'q()' to quit R.
+
+	> install.packages("/home/ec2-user/VirVarSeq/R/packages/rmgt_0.9.001.tar.gz",repos=NULL,lib="/home/ec2-user/VirVarSeq/R/lib")
+	* installing *source* package ârmgtâ ...
+	** libs
+	gfortran -m64   -fpic  -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -I/usr/lib64/gfortran/modules  -c apstat2subroutines.f -o apstat2subroutines.o
+	apstat2subroutines.f:275.11:
+
+      NL = FNT(1)
+           1
+	Warning: Possible change of value in conversion from REAL(4) to INTEGER(4) at (1)
+	apstat2subroutines.f:276.11:
+
+      NU = FNT(2)
+           1
+	Warning: Possible change of value in conversion from REAL(4) to INTEGER(4) at (1)
+	apstat2subroutines.f:20.39:
+
+     *        NR2, NROW, NTOT, NULL,IPR
+                                       1
+	Warning: Unused variable 'ipr' declared at (1)
+	gcc -m64 -std=gnu99 -shared -L/usr/local/lib64 -o rmgt.so apstat2subroutines.o -lgfortran -lm -lquadmath -L/usr/lib64/R/lib -lR
+	installing to /home/ec2-user/VirVarSeq/R/lib/rmgt/libs
+	** R
+	** data
+	** inst
+	** preparing package for lazy loading
+	** help
+	*** installing help indices
+	converting help for package ârmgtâ
+    finding HTML links ... done
+    mgt                                     html
+	** building package indices
+	** testing if installed package can be loaded
+	* DONE (rmgt)
+	> q()
+
+4) Set environment variables so the VirVarSeq Perl and R modules are found
+
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ export PERL5LIB=/home/ec2-user/VirVarSeq/lib
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ export R_LIBS_USER=/home/ec2-user/VirVarSeq/R/lib
+
+5) Test installation
+
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./run.sh
+	...
+	...
+	...
+	
+	The run.sh script creates a log file (VirVarSeq.log) where you can follow the progress.
+	
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ head VirVarSeq.log
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.0 Checking command line arguments ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.1 Checking input and output locations ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl |--- Check fastq dir ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl |--- Check map_vs_ref dir ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.2 Load in reference ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.3 Get sample names from file [./testdata/samples.txt]...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.4 Do read mapping and save SAM file ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.4.1 Locate reads ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl 1.4.2 Map reads for sample [110901_6_12_random_1] ...
+		2014-02-26 10:11:38     ./map_vs_ref.pl !---- Paired end mapping using ./testdata/fastq/Sample_110901_6_12_random_1/110901_6_12_random_1_CTTGTA_L006_R1_001.fastq.gz ./testdata/fastq/Sample_110901_6_12/110901_6_12_random_1_CTTGTA_L006_R2_001.fastq.gz ...
+		...
+		...
+		...
+		2014-02-26 10:31:32     ./mixture_model.pl      5.2 Get sample names from file [./testdata/samples.txt]...
+		2014-02-26 10:31:32     ./mixture_model.pl      5.3 Mixture Model
+		2014-02-26 10:31:32     ./mixture_model.pl      5.3.0 Sample [110901_6_12_random_1]
+		2014-02-26 10:31:32     ./mixture_model.pl      5.3.1 Running R --no-restore --no-save --max-ppsize=100000 --args ./testdata/results/codon_table/110901_6_12_random_1.stat ./testdata/results/mixture_model/110901_6_12_random_1.png ./testdata/results/mixture_model/110901_6_12_random_1.Q.score < R/mixtureModel.R
+		2014-02-26 10:31:34     ./mixture_model.pl      5.3.2 Re-run Codon table for sample [110901_6_12_random_1] with Q-score [19] ...
+		2014-02-26 10:36:29     ./mixture_model.pl      5.3.0 Sample [110901_6_12_random_2]
+		2014-02-26 10:36:30     ./mixture_model.pl      5.3.1 Running R --no-restore --no-save --max-ppsize=100000 --args ./testdata/results/codon_table/110901_6_12_random_2.stat ./testdata/results/mixture_model/110901_6_12_random_2.png ./testdata/results/mixture_model/110901_6_12_random_2.Q.score < R/mixtureModel.R
+		2014-02-26 10:36:31     ./mixture_model.pl      5.3.2 Re-run Codon table for sample [110901_6_12_random_2] with Q-score [19] ...
+		2014-02-26 10:41:50     ./mixture_model.pl      5.4 End.
+	
+	Total run-time is 30 minutes for 2 samples using the AWS EC2 instance-type (m2.4xlarge) 
+
+	Done!!
+	
+	
+6) Results
+	
+	The output of the run.sh script is stored in directory 
+	
+		<VirVarSeq>/testdata/results 
+		
+	The subdirectories are
+		
+		<VirVarSeq>/testdata/results/map_vs_ref
+		<VirVarSeq>/testdata/results/consensus
+		<VirVarSeq>/testdata/results/map_vs_consensus
+		<VirVarSeq>/testdata/results/codon_table
+		<VirVarSeq>/testdata/results/mixture_model
+		
+	Complete listing of the results directory 
+	
+	
+		[ec2-user@ip-10-34-219-157 ~]$ find VirVarSeq/testdata/results/
+		VirVarSeq/testdata/results/
+		VirVarSeq/testdata/results/map_vs_ref
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_2.2.sai
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_1.sam
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_1.2.sai
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_1.1.sai
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_2.sam
+		VirVarSeq/testdata/results/map_vs_ref/110901_6_12_random_2.1.sai
+		VirVarSeq/testdata/results/consensus
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa.ann
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa.ann
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa.amb
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa.bwt
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa.bwt
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa.amb
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa.sa
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_2_consensus.fa.pac
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa.sa
+		VirVarSeq/testdata/results/consensus/110901_6_12_random_1_consensus.fa.pac		
+		VirVarSeq/testdata/results/map_vs_consensus
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_2.sam
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_1.2.sai
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_2.2.sai
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_2.1.sai
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_1.1.sai
+		VirVarSeq/testdata/results/map_vs_consensus/110901_6_12_random_1.sam		
+		VirVarSeq/testdata/results/codon_table
+		VirVarSeq/testdata/results/codon_table/110901_6_12_random_1.stat
+		VirVarSeq/testdata/results/codon_table/110901_6_12_random_2.codon
+		VirVarSeq/testdata/results/codon_table/110901_6_12_random_2.stat
+		VirVarSeq/testdata/results/codon_table/110901_6_12_random_1.codon
+		VirVarSeq/testdata/results/mixture_model
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_2.Q.19.codon
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_1.png
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_2.Q.score
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_2.png
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_1.Q.19.stat
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_2.Q.19.stat
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_1.Q.19.codon
+		VirVarSeq/testdata/results/mixture_model/110901_6_12_random_1.Q.score
+		
+
+	
+Usage
+-----
+
+	The VirVarSeq pipeline makes use of a run.sh file.
+
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ more run.sh
+		indir=./testdata/fastq
+		outdir=./testdata/results
+		samples=./testdata/samples.txt
+		ref=./testdata/ref/1b_con1_AJ238799.NCBI.fa
+		startpos=3112
+		endpos=5531
+		region_start=3420
+		region_len=181
+		qv=0
+
+		./map_vs_ref.pl --samplelist $samples --ref $ref --indir $indir --outdir $outdir --mapping paired > VirVarSeq.log 2>&1
+		./consensus.pl --samplelist $samples --ref $ref --indir $indir --outdir $outdir --start $startpos --end $endpos >> VirVarSeq.log 2>&1
+		./map_vs_consensus.pl --samplelist $samples --indir $indir --outdir $outdir --mapping paired >> VirVarSeq.log 2>&1
+		./codon_table.pl --samplelist $samples --ref $ref --outdir $outdir --start=$region_start --len=$region_len --trimming=0 --qual=$qv >> VirVarSeq.log 2>&1
+		./mixture_model.pl --samplelist $samples --outdir $outdir --ref $ref --start=$region_start --len=$region_len --qual=$qv >> VirVarSeq.log 2>&1 
+
+
+
+	You must specify
+	
+		indir	: directory where the fastq.gz files of the different samples to be processed are stored. (in fastq.gz format)
+
+		
+			example:
+			[ec2-user@ip-10-34-219-157 VirVarSeq]$ ls -lrt testdata/fastq/*/*
+			-rw-r--r-- 1 ec2-user ec2-user 61603547 Feb 24 13:30 testdata/fastq/Sample_110901_6_12_random_1/110901_6_12_random_1_CTTGTA_L006_R2_001.fastq.gz
+			-rw-r--r-- 1 ec2-user ec2-user 54112292 Feb 24 13:30 testdata/fastq/Sample_110901_6_12_random_1/110901_6_12_random_1_CTTGTA_L006_R1_001.fastq.gz
+			-rw-r--r-- 1 ec2-user ec2-user 61603547 Feb 24 13:30 testdata/fastq/Sample_110901_6_12_random_2/110901_6_12_random_2_CTTGTA_L006_R2_001.fastq.gz
+			-rw-r--r-- 1 ec2-user ec2-user 54112292 Feb 24 13:30 testdata/fastq/Sample_110901_6_12_random_2/110901_6_12_random_2_CTTGTA_L006_R1_001.fastq.gz
+			
+		outdir	: directory where the output is saved.
+		
+		samples	: txt file with the names of the samples that need to be processed. The names are the first part of the fastq names created by Illumina. Multiple samples can be processed sequentially by having multiple sample names in the samples file. 
+	
+			example:
+			[ec2-user@ip-10-34-219-157 VirVarSeq]$ more testdata/samples.txt
+			110901_6_12_random_1
+			110901_6_12_random_2
+
+		ref	: path directing to the reference fasta file.
+
+			example:
+			[ec2-user@ip-10-34-219-157 VirVarSeq]$ more testdata/ref/1b_con1_AJ238799.NCBI.fa
+			>1b_con1_AJ238799.NCBI Hepatitis C virus type 1b complete genome, isolate Con1.
+			GCCAGCCCCCGATTGGGGGCGACACTCCACCATAGATCACTCCCCTGTGAGGAACTACTG
+			TCTTCACGCAGAAAGCGTCTAGCCATGGCGTTAGTATGAGTGTCGTGCAGCCTCCAGGAC
+			...
+			
+		startpos	: position of the reference (at nucleotide level) where the determination of the consensus needs to start.	
+		endpos		: position of the reference (at nucleotide level) where the consensus determination ends.
+		region_start	: position of the reference (at nucleotide level) where the pileup of the codons needs to start. This position is equal or higher to "Startpos". 
+		region_len	: number of codon positions that need to be covered in the pileup table. Region_len * 3 defines the length (at nucleotide level) on the reference genome that is covered in the pileup table.
+		qv		: a quality score used for filtering of the codon table. When applying Q-cpileup as described in the paper, Qv should be set to zero. The quality score used for filtering will be derived data driven.
+		                  The option is left to specify a qv upfront. In this last case there is no need to run mixuture_model.pl
+		trimming	: If trimming is 0, soft-clipping as defined by the aligner will be ignored. If trimming is 1 (default), reads will be soft-clipped prior to the analysis.  
+		
+	Flow
+	
+		Starting from the .fastq.gz files following steps are executed
+	
+			   map_vs_ref
+				|
+			    consensus
+				|
+			 map_vs_consensus
+				|
+			   codon_table
+				|
+			  mixture_model
+		
+	
+	Each of the steps are executed using a Perl script.	
+	
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./map_vs_ref.pl
+		2014-02-26 13:05:20     ./map_vs_ref.pl 1.0 Checking command line arguments ...
+
+		Sample list not defined.
+
+		Usage:
+			map_vs_ref.pl --samplelist <file> --ref <ref> --indir <indir> --outdir <outdir> [options]
+
+		Options:
+
+			--help brief help message
+			--man full documentation
+			
+			
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./consensus.pl
+		2014-02-26 13:05:40     ./consensus.pl  2.0 Checking command line arguments ...
+		sample file (sample=)
+		Usage:
+			consensus.pl --samplelist <file> --ref <ref> --outdir <outdir> [options]
+
+		Options:
+
+			--help brief help message
+			--man full documentation
+	
+			
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./map_vs_consensus.pl
+		2014-02-26 13:05:48     ./map_vs_consensus.pl   3.0 Checking command line arguments ...
+
+		Sample list not defined.
+
+		Usage:
+			map_vs_consensus.pl --samplelist <file> [options]
+
+		Options:
+
+			--help brief help message
+			--man full documentation
+
+			
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./codon_table.pl
+		2014-02-26 13:05:59     ./codon_table.pl        4.0 Checking command line arguments ...
+
+		Sample list not defined.
+
+		Usage:
+			codon_table.pl --samplelist <file> --ref <ref> --samdir <samdir> --outdir <outdir> --start <region start> --len <region length> [options]
+
+		Options:
+
+			--help brief help message
+			--man full documentation
+
+			
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./mixture_model.pl
+		2014-02-26 13:06:02     ./mixture_model.pl      5.0 Checking command line arguments ...
+
+		Sample list not defined.
+
+		Usage:
+			mixture_model.pl --samplelist <file> --outdir <outdir> --em <em>
+
+		Options:
+
+			--help brief help message
+			--man full documentation
+
+	A full man page can be requested using the --man option
+
+		example:		
+		[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./perl map_vs_ref.pl --man
+		
+			MAP_VS_REF(1)         User Contributed Perl Documentation        MAP_VS_REF(1)
+
+		NAME
+			map_vs_ref.pl Mapping for a list of samples against a given ref genome using BWA.
+
+		SYNOPSIS
+			map_vs_ref.pl --samplelist <file> --ref <ref> --indir <indir> --outdir <outdir> [options]
+
+			Options:
+
+			--help brief help message
+			--man full documentation
+
+		OPTIONS
+			--help  Program:  map_vs_ref.pl
+
+               Version:  2013-01-04
+
+               Contact:  Joke Reumers (jreumers@its.jnj.com); Yves Wetzels (ywetzel@its.jnj.com)
+
+               Usage:    perl map_vs_ref.pl [options]
+
+               Options:
+
+                       -s/--samplelist     <string>    [ required ]
+                       -r/--ref            <string>    [ required ]
+                       -i/--indir          <string>    [ required ]
+                       -o/--outdir         <string>    [ required ]
+                       -m/--mapping        <string>    [ single or paired, default: single ]
+
+               For details on these options run      
+			   
+			map_vs_ref.pl --man
+						
+                       -s/--samplelist <samplelist>    Text file containing the sample names as used in the fastq filenames.
+                       -r/--ref <ref file>       	   Full path of the ref file in fasta format. BWA generated indexes should be in the same folder.
+                       -i/--indir                      Full path of the directory containing the demultiplexed fastq files (in gz format)
+                       -o/--outdir                     Full path of the target directory for this project
+                       -m/--mapping                    Mapping mode for BWA. "single" or "paired"
+
+		DESCRIPTION
+       
+				map_vs_ref.pl takes a list of samples and uses BWA to map the associated reads against a given ref.  A subdirectory map_vs_ref is created containing the sam files for all samples.
+
+		perl v5.10.1                      2014-02-24                     MAP_VS_REF(1)
+
+
+	
+FAQ
+---
+
+1) 	QUESTION
+	--------
+	got message "Can`t locate File.pm in @INC" running map_vs_ref.pl
+
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ ./map_vs_ref.pl
+	Can't locate Files.pm in @INC (@INC contains: /pipeline/scripts/lib /usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib64/perl5 /usr/share/perl5 .) at ./map_vs_ref.pl line 9.
+	BEGIN failed--compilation aborted at ./map_vs_ref.pl line 9.
+
+	ANSWER
+	------
+	Please point the PERL5LIB environment variable to the <VirVarSeq>/lib directory where the Perl libraries are installed
+
+	example:
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ export PERL5LIB=/home/ec2-user/VirVarSeq/lib	
+
+	
+2) 	QUESTION
+	--------
+	How can I install the Statistics::Basic Perl module?
+		
+	ANSWER
+	------
+	Perl modules can be installed using cpan. This installer will also install all dependend packages.
+	
+	example:
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$  cpan -i Statistics::Basic
+	CPAN: Storable loaded ok (v2.20)
+	Going to read '/home/ec2-user/.cpan/Metadata'
+	Database was generated on Wed, 26 Feb 2014 13:17:02 GMT
+	Statistics::Basic is up to date (1.6607).
+
+	
+3) 	QUESTION
+	--------
+	I don`t have cpan, how can I install the Statistics::Basic Perl module?
+		
+	ANSWER
+	------
+	You must first install the cpan tool in order to install other Perl modules.
+	Beware you must have root (or sudo rights) to install cpan tool.
+	
+	example:	
+	[ec2-user@ip-10-34-219-157 VirVarSeq]$ sudo yum install cpan
+	Loaded plugins: priorities, update-motd, upgrade-helper
+	amzn-main/latest                                                                                                                                                           | 2.1 kB     00:00
+	amzn-updates/latest                                                                                                                                                        | 2.3 kB     00:00
+	Package perl-CPAN-1.9402-136.21.amzn1.x86_64 already installed and latest version
+	Nothing to do
+	
+
+	
+Thanks
+------
