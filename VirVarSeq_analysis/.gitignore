@@ -4,3 +4,5 @@ VirVarSeq.log
 VirVarSeq_results*
 raw_fastq
 samples.txt
+snake.log
+tmpref.*

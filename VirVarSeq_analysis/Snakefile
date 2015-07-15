@@ -2,13 +2,14 @@
 REF = './db/consensus_B.fna'
 SAMPLESDIR = 'raw_fastq'
 RECAL_EXE = './recal_fastq.py'
-SAMPLES = ['%d_S%d' % (i, i - 8) for i in range(9, 10)]
+SAMPLES = ['%d_S%d' % (i, i - 8) for i in [10, 11, 12, 17, 18, 19, 20]]
 
 rule all:
     input:
         #expand("mapped_{sample}/recal_{sample}.fastq", sample=SAMPLES)
         #'samples.txt'
         'VirVarSeq.log'
+
 rule refindex:
     input:
         REF
@@ -24,7 +25,7 @@ rule align:
     output:
         "Sample_mapped_{id}/{id}.bam"
     shell:
-        "/bin/bash -c \"bwa mem -t 12 -O 12 tmpref <(seqtk sample {input[0]} 20000) | samtools view -u - | samtools sort -f - {output}\""
+        "/bin/bash -c \"bwa mem -t 12 -O 12 tmpref <(seqtk sample {input[0]} 200000) | samtools view -u - | samtools sort -f - {output}\""
 
 rule recal:
     input:
