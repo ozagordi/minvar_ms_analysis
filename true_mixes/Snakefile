@@ -1,0 +1,22 @@
+SAMPLES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
+
+rule all:
+    input:
+        expand("mix_{smp}.csv", smp=SAMPLES)
+
+rule tsv_to_csv:
+    input:
+        'sequenced_clones.tsv'
+    output:
+        'sequenced_clones.csv'
+    shell:
+        'parse_hivdb_output.py {input} > {output}'
+
+rule mix:
+    input:
+        'sequenced_clones.csv'
+    output:
+        expand("mix_{smp}.csv", smp=SAMPLES)
+    run:
+        for i in SAMPLES:
+            shell('create_mixes.py {i} > mix_{i}.csv')

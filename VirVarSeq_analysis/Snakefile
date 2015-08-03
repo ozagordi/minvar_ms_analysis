@@ -1,4 +1,6 @@
 # reference and MiSeq samples
+import os
+import glob
 REF = './db/consensus_B.fna'
 SAMPLESDIR = 'raw_fastq'
 RECAL_EXE = './recal_fastq.py'
@@ -8,7 +10,10 @@ rule all:
     input:
         #expand("mapped_{sample}/recal_{sample}.fastq", sample=SAMPLES)
         #'samples.txt'
-        'VirVarSeq.log'
+        #'VirVarSeq.log'
+        #'codon_files.txt'
+        #expand("VirVarSeq_results/mutations/mutations_mapped_{sample}.csv", sample=SAMPLES)
+        expand("images/scatter_plot_mix_{id}.pdf", id=[9, 10, 11, 12, 17, 18, 19, 20])
 
 rule refindex:
     input:
@@ -54,3 +59,35 @@ rule virvarseq:
         'VirVarSeq.log'
     shell:
         '/bin/bash run.sh'
+
+rule parse_codon_files:
+    input:
+        'VirVarSeq.log'
+    output:
+        'codon_files.txt'
+    run:
+        with open('codon_files.txt', 'w') as h:
+            for f in glob.glob("VirVarSeq_results/mixture_model/mapped_*.codon"):
+                print(f, file=h)
+
+rule mutations:
+    input:
+        "codon_files.txt"
+    output:
+        expand("VirVarSeq_results/mutations/mutations_mapped_{sample}.csv", sample=SAMPLES)
+    run:
+        with open('codon_files.txt') as h:
+            for l in h:
+                smp = os.path.basename(l.strip().split('.')[0])
+                shell('./parse_codons.py %s VirVarSeq_results/mutations/mutations_%s.csv' % (l.strip(), smp))
+
+rule plots:
+    input:
+        "../true_mixes/mix_{id}.csv"
+    output:
+        "images/scatter_plot_mix_{id}.pdf"
+    run:
+        for i in [9, 10, 11, 12, 17, 18, 19, 20]:
+            shell("Rscript scatterplots.R {i}")
+    onsuccess:
+        os.remove('Rplots.pdf')
