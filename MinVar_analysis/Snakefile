@@ -1,0 +1,38 @@
+# reference and MiSeq samples
+import os
+import glob
+MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
+MISEQDIR = '/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls'
+MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
+for i in MIXES:
+    os.symlink('%s/%d_S%d_L001_R1_001.fastq.gz' % (MISEQDIR, i, i - 8),
+               'fastq_dir/%d_L001_R1_001.fastq.gz' % i)
+
+rule all:
+    input:
+        #expand("minvar_results_{id}/annotated_DRM.csv", id=MIXES)
+        expand("images/scatter_plot_mix_{id}.pdf", id=MIXES)
+
+rule minvar:
+    input:
+        "fastq_dir/{id}_L001_R1_001.fastq.gz"
+    output:
+        "minvar_results_{id}/annotated_DRM.csv",
+        odir="minvar_results_{id}",
+        logfile="minvar_results_{id}/minvar_{id}.err"
+    shell:
+        "cd {output.odir}; \
+        {MINVAR_EXE} -f ../{input} &>> ../{output.logfile}"
+
+rule plots:
+    input:
+        "minvar_results_{id}/annotated_DRM.csv"
+    output:
+        "images/scatter_plot_mix_{id}.pdf"
+    run:
+        shell("Rscript scatterplots.R {wildcards.id}")
+
+onsuccess:
+    os.remove('Rplots.pdf')
+    for i in MIXES:
+        os.remove('fastq_dir/%d_L001_R1_001.fastq.gz' % i)
