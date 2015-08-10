@@ -1,0 +1,5 @@
+minvar_results_*
+.snakemake
+fastq_dir
+images
+summary

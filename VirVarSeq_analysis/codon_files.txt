@@ -1,8 +1,0 @@
-VirVarSeq_results/mixture_model/mapped_9_S1.Q.7.codon
-VirVarSeq_results/mixture_model/mapped_20_S12.Q..codon
-VirVarSeq_results/mixture_model/mapped_10_S2.Q.9.codon
-VirVarSeq_results/mixture_model/mapped_11_S3.Q.11.codon
-VirVarSeq_results/mixture_model/mapped_12_S4.Q..codon
-VirVarSeq_results/mixture_model/mapped_18_S10.Q.9.codon
-VirVarSeq_results/mixture_model/mapped_17_S9.Q.9.codon
-VirVarSeq_results/mixture_model/mapped_19_S11.Q.7.codon
