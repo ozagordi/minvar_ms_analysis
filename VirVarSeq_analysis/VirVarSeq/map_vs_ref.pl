@@ -14,24 +14,24 @@ use Seq::Utilities;
 ### Set default values or initiate variables #######################################
 my ($man, $help) =0;
 my ($sample_file, $ref, $project_in, $project_out) = "";
-my $mapping		= "single"; 
+my $mapping		= "single";
 my $map_vs_ref		= "map_vs_ref";
-my $sample_prefix 	= "Sample_"; 
+my $sample_prefix 	= "fastq_dir_"; 
 my $fastq		= "fastq";
 my $parameters 		= " -t 8 -q 15 -n 12 -k 6 ";
 
 ### Read options from command line #################################################
 GetOptions(
-	'ref=s'		=> \$ref, 
-	'samplelist=s'	=> \$sample_file ,	
+	'ref=s'		=> \$ref,
+	'samplelist=s'	=> \$sample_file ,
 	'outdir=s'	=> \$project_out ,
-	'indir=s'	=> \$project_in , 
+	'indir=s'	=> \$project_in ,
 	'mapping:s'	=> \$mapping ,
-	'refmapdir:s'	=> \$map_vs_ref,	
-	'params:s'	=> \$parameters,	
-	'help!'		=> \$help ,		
-	'man!'		=> \$man	
-) or pod2usage(2); 
+	'refmapdir:s'	=> \$map_vs_ref,
+	'params:s'	=> \$parameters,
+	'help!'		=> \$help ,
+	'man!'		=> \$man
+) or pod2usage(2);
 
 pod2usage("\n") if $help;
 pod2usage(-verbose => 2) if $man;
@@ -60,7 +60,7 @@ my $num_of_samples = scalar(@samples);
 Log::screen($0,"1.4 Do read mapping and save SAM file ...");
 for (my $i=0; $i < $num_of_samples; ++$i){
 	my $sample = 	$samples[$i];
-	
+
 	Log::screen($0,"1.4.1 Locate reads ...");
 	my $readdir 	= $project_in."/".$sample_prefix.$sample;
 	my $read1 	= `ls $readdir/*R1*gz`; $read1 =~ s/\r|\n//sg; #; print $read1."\n";
@@ -136,7 +136,7 @@ exit(0);
 __END__
 =head1 NAME
 
-map_vs_ref.pl 
+map_vs_ref.pl
 Mapping for a list of samples against a given ref genome using BWA.
 
 =head1 SYNOPSIS
@@ -156,32 +156,32 @@ Options:
 
 =item --help
 
-Program:	map_vs_ref.pl 
+Program:	map_vs_ref.pl
 
 Version:	2013-01-04
 
 Contact:	Joke Reumers (jreumers@its.jnj.com); Yves Wetzels (ywetzel@its.jnj.com)
 
-Usage:   	perl map_vs_ref.pl [options] 
+Usage:   	perl map_vs_ref.pl [options]
 
 Options:
 
 	-s/--samplelist     <string>    [ required ]
 	-r/--ref            <string>    [ required ]
 	-i/--indir          <string>    [ required ]
-	-o/--outdir         <string>    [ required ]	
+	-o/--outdir         <string>    [ required ]
 	-m/--mapping        <string>    [ single or paired, default: single ]
 
-For details on these options run 
+For details on these options run
 	perl map_vs_ref.pl --man
-	
+
 =item --man
 
-	-s/--samplelist	<samplelist>    Text file containing the sample names as used in the fastq filenames.	
+	-s/--samplelist	<samplelist>    Text file containing the sample names as used in the fastq filenames.
 	-r/--ref <ref file>       Full path of the ref file in fasta format. BWA generated indexes should be in the same folder.
 	-i/--indir                      Full path of the directory containing the demultiplexed fastq files (in gz format)
 	-o/--outdir                     Full path of the target directory for this project
-	-m/--mapping                    Mapping mode for BWA. "single" or "paired" 
+	-m/--mapping                    Mapping mode for BWA. "single" or "paired"
 
 =back
 

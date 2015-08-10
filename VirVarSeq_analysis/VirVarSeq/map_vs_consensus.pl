@@ -17,20 +17,20 @@ my $mapping		= "single"; # default single end mapping
 my $map_vs_consensus	= "map_vs_consensus";
 my $consensus		= "consensus";
 my $fastq		= "fastq";
-my $sample_prefix 	= "Sample_"; #Constants::SAMPLE_PREFIX;
+my $sample_prefix 	= "fastq_dir_"; #Constants::SAMPLE_PREFIX;
 my $parameters          = " -t 8 -q 15 -n 12 -k 6 ";
 
 ### Read options from command line #################################################
 GetOptions(
-	'samplelist=s'	=> \$sample_file ,	
+	'samplelist=s'	=> \$sample_file ,
 	'outdir=s'	=> \$project_out ,
-	'indir=s'	=> \$project_in , 
+	'indir=s'	=> \$project_in ,
 	'mapping:s'	=> \$mapping ,
 	'consmapdir:s'	=> \$map_vs_consensus,
-	'consensusdir:s'=> \$consensus,		
-	'params:s'	=> \$parameters,	
-	'help!'		=> \$help ,		
-	'man!'		=> \$man ) or pod2usage(2); 
+	'consensusdir:s'=> \$consensus,
+	'params:s'	=> \$parameters,
+	'help!'		=> \$help ,
+	'man!'		=> \$man ) or pod2usage(2);
 
 pod2usage("\n") if $help;
 pod2usage(-verbose => 2) if $man;
@@ -61,8 +61,8 @@ for (my $i=0; $i < $num_of_samples; ++$i){
 
 	Log::screen($0,"3.3.1 Locate reads ...");
 	my $readdir 	= $project_in."/".$sample_prefix.$sample;
-	my $read1 		= `ls $readdir/*R1*gz`; $read1 =~ s/\r|\n//sg; 
-	my $read2 		= `ls $readdir/*R2*gz`; $read2 =~ s/\r|\n//sg; 
+	my $read1 		= `ls $readdir/*R1*gz`; $read1 =~ s/\r|\n//sg;
+	my $read2 		= `ls $readdir/*R2*gz`; $read2 =~ s/\r|\n//sg;
 
 	Log::screen($0,"3.3.2 Locate consensus for [$sample] ...");
 	my $consensusfile 	= $project_out."/".$consensus."/".$sample."_consensus.fa";
@@ -70,7 +70,7 @@ for (my $i=0; $i < $num_of_samples; ++$i){
 		pod2usage("\nConsensus sequence file cannot be found. \n");
 		exit(1);
 	}
-	
+
 	Log::screen($0,"3.3.3 Map reads for sample [$sample] ...");
 	my $samfile 	= $sample.".sam";
 	my $rundir 		= $project_out."/".$map_vs_consensus;
@@ -123,7 +123,7 @@ sub checkFileLoc{
 __END__
 =head1 NAME
 
-map_vs_consensus.pl 
+map_vs_consensus.pl
 Mapping for a list of samples against a given consensus sequence using BWA.
 
 =head1 SYNOPSIS
@@ -142,30 +142,30 @@ Options:
 
 =item --help
 
-Program:	map_vs_consensus.pl 
+Program:	map_vs_consensus.pl
 
 Version:	2013-01-04
 
 Contact:	Joke Reumers (jreumers@its.jnj.com); Yves Wetzels (ywetzel@its.jnj.com)
 
-Usage:   	perl map_vs_consensus.pl [options] 
+Usage:   	perl map_vs_consensus.pl [options]
 
 Options:
 
 	-s/--samplelist     <string>    [ required ]
 	-i/--indir          <string>    [ required ]
-	-o/--outdir         <string>    [ required ]	
+	-o/--outdir         <string>    [ required ]
 	-m/--mapping        <string>    [ single or paired, default: single ]
 
-For details on these options run 
+For details on these options run
 	perl map_vs_consensus.pl --man
-	
+
 =item --man
 
-	-s/--samplelist	<samplelist>    Text file containing the sample names as used in the fastq filenames.	
+	-s/--samplelist	<samplelist>    Text file containing the sample names as used in the fastq filenames.
 	-i/--indir                      Full path of the directory containing the demultiplexed fastq files
 	-o/--outdir                     Full path of the target directory for this project
-	-m/--mapping                    Mapping mode for BWA. "single" or "paired" 
+	-m/--mapping                    Mapping mode for BWA. "single" or "paired"
 
 =back
 

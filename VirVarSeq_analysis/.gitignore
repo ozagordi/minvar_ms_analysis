@@ -7,3 +7,8 @@ samples.txt
 snake.log
 tmpref.*
 images/
+linked/*
+VirVarSeq*log
+fastq_dir_*
+sample_*txt
+summary/*csv

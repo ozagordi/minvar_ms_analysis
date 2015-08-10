@@ -1,93 +1,98 @@
 # reference and MiSeq samples
 import os
 import glob
+import subprocess
 REF = './db/consensus_B.fna'
-SAMPLESDIR = 'raw_fastq'
 RECAL_EXE = './recal_fastq.py'
-SAMPLES = ['%d_S%d' % (i, i - 8) for i in [10, 11, 12, 17, 18, 19, 20]]
+MISEQDIR = '/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls'
+MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
+# this is used to solve the double id in sample names (9_S1, 10_S2 and so on)
+for i in MIXES:
+    try:
+        os.mkdir('fastq_dir_%s' % i)
+    except:
+        pass
+    os.symlink('%s/%d_S%d_L001_R1_001.fastq.gz' % (MISEQDIR, i, i - 8),
+               'linked/%d_L001_R1_001.fastq.gz' % (i))
 
 rule all:
     input:
-        #expand("mapped_{sample}/recal_{sample}.fastq", sample=SAMPLES)
         #'samples.txt'
         #'VirVarSeq.log'
         #'codon_files.txt'
+        #expand('sample_{id}.txt', id=MIXES)
         #expand("VirVarSeq_results/mutations/mutations_mapped_{sample}.csv", sample=SAMPLES)
-        expand("images/scatter_plot_mix_{id}.pdf", id=[9, 10, 11, 12, 17, 18, 19, 20])
+        expand("images/scatter_plot_mix_{id}.pdf", id=MIXES),
+        expand("summary/precrec_{id}.csv", id=MIXES)
 
-rule refindex:
-    input:
-        REF
-    output:
-        "tmpref.bwt"
-    shell:
-        "bwa index -p tmpref {REF}"
 
-rule align:
+rule sample_fastq:
     input:
-        "/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls/{id}_L001_R1_001.fastq.gz",
-        "tmpref.bwt"
+        'linked/{id}_L001_R1_001.fastq.gz'
     output:
-        "Sample_mapped_{id}/{id}.bam"
+        'fastq_dir_{id}/{id}_L001_R1_001.fastq.gz'
     shell:
-        "/bin/bash -c \"bwa mem -t 12 -O 12 tmpref <(seqtk sample {input[0]} 200000) | samtools view -u - | samtools sort -f - {output}\""
-
-rule recal:
-    input:
-        "Sample_mapped_{id}/{id}.bam"
-    output:
-        "Sample_mapped_{id}/recal_{id}_L001_R1_001.fastq.gz"
-    message:
-        "Executing recal on the following files {input}."
-    shell:
-        "{RECAL_EXE} {input} | gzip - > {output}; rm -f grouped.* known.* subsampled.* recal_data.grp tmpref.*"
+        'seqtk sample {input} 200000 > {output}'
 
 rule virvarseq_samples:
     input:
-        expand("Sample_mapped_{sample}/recal_{sample}_L001_R1_001.fastq.gz", sample=SAMPLES)
+        "fastq_dir_{id}/{id}_L001_R1_001.fastq.gz"
     output:
-        'samples.txt'
+        'sample_{id}.txt'
     run:
-        with open('samples.txt', 'w') as h:
-            for sample in SAMPLES:
-                print('mapped_%s' % sample, file=h)
+        n = "{}".format(output).split('_')[1].split('.')[0]
+        with open("{}".format(output), 'w') as h:
+            print('%s' % n, file=h)
 
 rule virvarseq:
     input:
-        'samples.txt'
+        'sample_{id}.txt'
     output:
-        'VirVarSeq.log'
+        'VirVarSeq_results/codon_table/{id}.codon'
     shell:
-        '/bin/bash run.sh'
+        '/bin/bash run.sh {input} &> VirVarSeq_{wildcards.id}.log'
 
 rule parse_codon_files:
     input:
-        'VirVarSeq.log'
+        'VirVarSeq_results/codon_table/{id}.codon'
     output:
-        'codon_files.txt'
+        "VirVarSeq_results/mutations/mutations_mapped_{id}.csv"
     run:
-        with open('codon_files.txt', 'w') as h:
-            for f in glob.glob("VirVarSeq_results/mixture_model/mapped_*.codon"):
-                print(f, file=h)
-
-rule mutations:
-    input:
-        "codon_files.txt"
-    output:
-        expand("VirVarSeq_results/mutations/mutations_mapped_{sample}.csv", sample=SAMPLES)
-    run:
-        with open('codon_files.txt') as h:
-            for l in h:
-                smp = os.path.basename(l.strip().split('.')[0])
-                shell('./parse_codons.py %s VirVarSeq_results/mutations/mutations_%s.csv' % (l.strip(), smp))
+        shell('./parse_codons.py {input} {output}')
 
 rule plots:
     input:
-        "../true_mixes/mix_{id}.csv"
+        "../true_mixes/mix_{id}.csv",
+        "VirVarSeq_results/mutations/mutations_mapped_{id}.csv"
     output:
         "images/scatter_plot_mix_{id}.pdf"
     run:
-        for i in [9, 10, 11, 12, 17, 18, 19, 20]:
-            shell("Rscript scatterplots.R {i}")
-    onsuccess:
+        shell("Rscript scatterplots.R {wildcards.id}")
+
+rule precrec:
+    input:
+        "VirVarSeq_results/mutations/mutations_mapped_{id}.csv"
+    output:
+        "summary/precrec_{id}.csv"
+    run:
+        shell("Rscript precrec.R {wildcards.id}")
+
+onsuccess:
+    try:
         os.remove('Rplots.pdf')
+    except FileNotFoundError:
+        pass
+    for i in MIXES:
+#        os.remove('fastq_dir_%d/%d_L001_R1_001.fastq.gz' % (i, i))
+#        os.rmdir('fastq_dir_%d' % i)
+        os.remove('linked/%d_L001_R1_001.fastq.gz' % (i))
+
+onerror:
+    try:
+        os.remove('Rplots.pdf')
+    except FileNotFoundError:
+        pass
+    for i in MIXES:
+#        os.remove('fastq_dir_%d/%d_L001_R1_001.fastq.gz' % (i, i))
+#        os.rmdir('fastq_dir_%d' % i)
+        os.remove('linked/%d_L001_R1_001.fastq.gz' % (i))

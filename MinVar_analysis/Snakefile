@@ -11,8 +11,8 @@ for i in MIXES:
 rule all:
     input:
         #expand("minvar_results_{id}/annotated_DRM.csv", id=MIXES)
-        expand("images/scatter_plot_mix_{id}.pdf", id=MIXES)
-
+        expand("images/scatter_plot_mix_{id}.pdf", id=MIXES),
+        expand("summary/precrec_{id}.csv", id=MIXES)
 rule minvar:
     input:
         "fastq_dir/{id}_L001_R1_001.fastq.gz"
@@ -32,7 +32,18 @@ rule plots:
     run:
         shell("Rscript scatterplots.R {wildcards.id}")
 
+rule precrec:
+    input:
+        "minvar_results_{id}/annotated_DRM.csv"
+    output:
+        "summary/precrec_{id}.csv"
+    run:
+        shell("Rscript precrec.R {wildcards.id}")
+
 onsuccess:
-    os.remove('Rplots.pdf')
+    try:
+        os.remove('Rplots.pdf')
+    except FileNotFoundError:
+        pass
     for i in MIXES:
         os.remove('fastq_dir/%d_L001_R1_001.fastq.gz' % i)
