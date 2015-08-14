@@ -1,3 +1,4 @@
+
 library(dplyr)
 library(ggplot2)
 library(assertthat)
@@ -6,7 +7,7 @@ library(assertthat)
 args <- commandArgs(trailingOnly = TRUE)
 mix_number=as.numeric(args[1])
 
-minvarfile = Sys.glob(file.path(paste0('MinVar_analysis/minvar_results_', mix_number, '*','/annotated_DRM.csv')))
+minvarfile = Sys.glob(file.path(paste0('../MinVar_analysis/minvar_results_', mix_number, '*','/annotated_DRM.csv')))
 assert_that(length(minvarfile) == 1)
 
 minvar = minvarfile %>%
@@ -15,7 +16,7 @@ minvar = minvarfile %>%
     select(gene, pos, mut, freq) %>%
     rename(MinVar = freq)
 
-virvarfile = Sys.glob(file.path(paste0('VirVarSeq_analysis/VirVarSeq_results/mutations/mutations_mapped_', mix_number, '*')))
+virvarfile = Sys.glob(file.path(paste0('../VirVarSeq_analysis/VirVarSeq_results/mutations/mutations_mapped_', mix_number, '*')))
 virvar = virvarfile %>%
     read.csv() %>%
     filter(gene != "GagPolTF", pos < 336, gene != 'integrase') %>%

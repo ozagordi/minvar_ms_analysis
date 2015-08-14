@@ -10,7 +10,7 @@ mixes = c(9, 10, 11, 12, 17, 18, 19, 20)
 # here precision and recall
 mv_res = data.frame()
 for(mix in mixes){
-    x = paste0('MinVar_analysis/summary/precrec_', mix, '.csv') %>%
+    x = paste0('../MinVar_analysis/summary/precrec_', mix, '.csv') %>%
         read.csv(sep='\t')
     mv_res = bind_rows(mv_res, x)
 }
@@ -19,7 +19,7 @@ mv_res$platform = rep('Miseq', length(mixes))
 
 vv_res = data.frame()
 for(mix in mixes){
-    x = paste0('VirVarSeq_analysis/summary/precrec_', mix, '.csv') %>%
+    x = paste0('../VirVarSeq_analysis/summary/precrec_', mix, '.csv') %>%
         read.csv(sep='\t')
     vv_res = bind_rows(vv_res, x)
 }
@@ -39,7 +39,7 @@ ggsave('precision_recall.pdf')
 
 res_454 = data.frame()
 for(mix in mixes){
-    x = paste0('MinVar_analysis_454/summary/precrec_', mix, '.csv') %>%
+    x = paste0('../MinVar_analysis_454/summary/precrec_', mix, '.csv') %>%
         read.csv(sep='\t')
     res_454 = bind_rows(res_454, x)
 }
