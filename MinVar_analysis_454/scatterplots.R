@@ -22,10 +22,14 @@ df_results = full_join(truth, minvar, by=c("gene", "pos", "mut")) %>%
   mutate(measured=ifelse(is.na(measured), 0, measured)) %>%
   mutate(expected=ifelse(is.na(expected), 0, expected))
 
+write.csv(df_results, paste0('images/merged_truth_', mix_number, '_table.csv'), row.names=FALSE)
+
 p = ggplot(df_results, aes(x=expected, y=measured, color=gene)) +
-    geom_point(position=position_jitter(width=0.02, height=0.00), size=2.5) +
-    scale_x_continuous(limits=c(0, 1), breaks=seq(0, 1, 0.1)) +
-    scale_y_continuous(limits=c(0, 1), breaks=seq(0, 1, 0.1))
+geom_point(aes(shape=factor(gene)), position=position_jitter(width=0.02, height=0.0), size=1.8, solid=FALSE) +
+scale_x_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
+scale_y_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
+scale_shape(solid=FALSE) +
+guides(shape=FALSE)
 
 gname = paste0("images/scatter_plot_mix_", mix_number, ".pdf")
 ggsave(file=gname)

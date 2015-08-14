@@ -7,6 +7,7 @@ library(ggplot2)
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 mixes = c(9, 10, 11, 12, 17, 18, 19, 20)
 
+# here precision and recall
 mv_res = data.frame()
 for(mix in mixes){
     x = paste0('MinVar_analysis/summary/precrec_', mix, '.csv') %>%

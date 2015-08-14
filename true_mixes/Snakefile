@@ -1,3 +1,4 @@
+
 SAMPLES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 
 rule all:
@@ -16,7 +17,6 @@ rule mix:
     input:
         'sequenced_clones.csv'
     output:
-        expand("mix_{smp}.csv", smp=SAMPLES)
-    run:
-        for i in SAMPLES:
-            shell('create_mixes.py {i} > mix_{i}.csv')
+        "mix_{id}.csv"
+    shell:
+        'create_mixes.py {wildcards.id} > {output}'

@@ -3,3 +3,4 @@ fastq_dir
 .snakemake
 summary/*csv
 images/*pdf
+images/*csv

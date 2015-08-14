@@ -1,32 +1,39 @@
 library(dplyr)
 library(ggplot2)
-#library(assertthat)
+library(assertthat)
 #library(testthat)
 
 args <- commandArgs(trailingOnly = TRUE)
 mix_number=as.numeric(args[1])
 
-virvarfile = Sys.glob(file.path(paste0('VirVarSeq_results/mutations/mutations_mapped_', mix_number, '*')))
+minvarfile = Sys.glob(file.path(paste0('MinVar_analysis/minvar_results_', mix_number, '*','/annotated_DRM.csv')))
+assert_that(length(minvarfile) == 1)
+
+minvar = minvarfile %>%
+    read.csv() %>%
+    filter(gene != "GagPolTF", pos < 336, gene != 'integrase') %>%
+    select(gene, pos, mut, freq) %>%
+    rename(MinVar = freq)
+
+virvarfile = Sys.glob(file.path(paste0('VirVarSeq_analysis/VirVarSeq_results/mutations/mutations_mapped_', mix_number, '*')))
 virvar = virvarfile %>%
     read.csv() %>%
-    rename(measured = FREQ, mut = AA)
+    filter(gene != "GagPolTF", pos < 336, gene != 'integrase') %>%
+    select(pos, gene, AA, FREQ) %>%
+    rename(VirVarSeq = FREQ, mut = AA)
 
-truth =  paste0('../true_mixes/mix_', mix_number, '.csv') %>%
-    read.csv() %>%
-    rename(expected = freq)
+df_results = full_join(minvar, virvar, by=c("gene", "pos", "mut")) %>%
+  mutate(MinVar=ifelse(is.na(MinVar), 0, MinVar)) %>%
+  mutate(VirVarSeq=ifelse(is.na(VirVarSeq), 0, VirVarSeq))
 
-df_results = full_join(truth, virvar, by=c("gene", "pos", "mut")) %>%
-  mutate(measured=ifelse(is.na(measured), 0, measured)) %>%
-  mutate(expected=ifelse(is.na(expected), 0, expected))
+write.csv(df_results, paste0('merged_', mix_number, '_table.csv'), row.names=FALSE)
 
-p = ggplot(df_results, aes(x=expected, y=measured, color=gene)) +
-    geom_point(aes(shape=factor(gene)), position=position_jitter(width=0.02, height=0.0), size=1.8, solid=FALSE) +
+p = ggplot(df_results, aes(x=MinVar, y=VirVarSeq, color=gene)) +
+    geom_point(position=position_jitter(width=0.0, height=0.0), size=2.5) +
     scale_x_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
-    scale_y_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
-    scale_shape(solid=FALSE) +
-    guides(shape=FALSE)
+    scale_y_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1))
 
-gname = paste0("images/scatter_plot_mix_", mix_number, ".pdf")
+gname = paste0("merged_scatter_plot_mix_", mix_number, ".pdf")
 ggsave(file=gname)
 
 # single_prec_rec = function(sv){
