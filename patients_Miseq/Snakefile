@@ -1,0 +1,53 @@
+# reference and MiSeq samples
+import os
+import sys
+import csv
+from Bio import SeqIO
+
+SAMPLES_LIST = '/home/ozagordi/Projects/MinVar/data/MinVarSamples.csv'
+MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
+PATIENTS = range(1, 11)
+run_dict = {}
+with open(SAMPLES_LIST, 'r') as csvfile:
+    run_list = csv.DictReader(csvfile)
+    for r in run_list:
+        if r['Sample_ID'] in run_dict.keys():
+            run_dict[r['Sample_ID']][r['key']] = r['value']
+        else:
+            run_dict[r['Sample_ID']] = {}
+
+rule all:
+    input:
+        expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
+        expand("summary/comparison_{id}.csv", id=PATIENTS)
+
+rule minvar_run:
+    input:
+
+    output:
+        'minvar_results_{id}/annotated_DRM.csv',
+        odir='minvar_results_{id}',
+        logfile="minvar_results_{id}/minvar_{id}.err"
+    message:
+        "Executing minvar for sample {wildcards.id}."
+    run:
+        sid = 'Pat_{}'.format(wildcards.id)
+        fastq_file = run_dict[sid]['full_path_fastq']
+        shell("cd {output.odir}; \
+        {MINVAR_EXE} -f {fastq_file} &>> ../{output.logfile}")
+
+rule compare:
+    input:
+        'minvar_results_{id}/annotated_DRM.csv'
+    output:
+        'summary/comparison_{id}.csv'
+    shell:
+        'compare_to_sanger.py {wildcards.id} > {output}'
+
+onsuccess:
+    print("Workflow finished, no error")
+    shell("mail -s \"All good\" zagordi.osvaldo@virology.uzh.ch < {log}")
+
+onerror:
+    print("An error occurred")
+    shell("mail -s \"An error occurred\" zagordi.osvaldo@virology.uzh.ch < {log}")

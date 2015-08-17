@@ -1,0 +1,4 @@
+minvar_results_*
+fastq_dir
+.snakemake
+summary

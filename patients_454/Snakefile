@@ -1,0 +1,86 @@
+
+# reference and MiSeq samples
+import os
+import sys
+import csv
+from Bio import SeqIO
+
+SAMPLES_LIST = '/home/ozagordi/Projects/MinVar/data/MinVarSamples.csv'
+MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
+PATIENTS = range(1, 11)
+
+run_dict = {}
+with open(SAMPLES_LIST, 'r') as csvfile:
+    run_list = csv.DictReader(csvfile)
+    for r in run_list:
+        if r['Sample_ID'] in run_dict.keys():
+            run_dict[r['Sample_ID']][r['key']] = r['value']
+        else:
+            run_dict[r['Sample_ID']] = {}
+
+def get_fastq(wildcards):
+
+    import glob
+    from Bio import SeqIO
+    mix = 'Pat_{}'.format(wildcards.id)
+    dir_454 = run_dict[mix]['X454_data_folder']
+    mid_str = run_dict[mix]['X454_MID']
+
+    full_amp_dir = [d for d in os.listdir(dir_454) if d.endswith('fullProcessingAmplicons')]
+    assert len(full_amp_dir) == 1, full_amp_dir
+    sff_dir = os.path.join(dir_454, full_amp_dir[0], 'sff')
+    indiv_sff = glob.glob('%s/*.sff' % sff_dir)
+    assert len(indiv_sff) == 1, sff_dir
+    sff_file = indiv_sff[0]
+    return sff_file
+
+rule all:
+    input:
+        expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
+        expand("summary/comparison_{id}.csv", id=PATIENTS)
+
+rule mix2sff:
+    input:
+        get_fastq
+    output:
+        'fastq_dir/{id}.sff'
+    run:
+        mix = 'Pat_{}'.format(wildcards.id)
+        mid_str = run_dict[mix]['X454_MID']
+        shell("sfffile -o fastq_dir/{wildcards.id}.sff mid{mid_str}@{input}")
+
+rule sff2fastq:
+    input:
+        'fastq_dir/{id}.sff'
+    output:
+        'fastq_dir/{id}.fastq'
+    run:
+        conv = SeqIO.convert(input[0], 'sff-trim', output[0], 'fastq')
+        print('Converted %d reads' % conv)
+
+rule minvar_run:
+    input:
+        'fastq_dir/{id}.fastq'
+    output:
+        'minvar_results_{id}/annotated_DRM.csv',
+        odir='minvar_results_{id}',
+        logfile="minvar_results_{id}/minvar_{id}.err"
+    shell:
+        "cd {output.odir}; \
+        {MINVAR_EXE} -f ../{input} &>> ../{output.logfile}"
+
+rule compare:
+    input:
+        'minvar_results_{id}/annotated_DRM.csv'
+    output:
+        'summary/comparison_{id}.csv'
+    shell:
+        'compare_to_sanger.py {wildcards.id} > {output}'
+
+onsuccess:
+    print("Workflow 454 finished, no error")
+    shell("mail -s \"All good\" zagordi.osvaldo@virology.uzh.ch < {log}")
+
+onerror:
+    print("An error occurred in workflow 454")
+    shell("mail -s \"An error occurred\" zagordi.osvaldo@virology.uzh.ch < {log}")
