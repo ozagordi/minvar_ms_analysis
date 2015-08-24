@@ -77,13 +77,13 @@ def parse_muts(s, gene):
             continue
         if aa == 'X':
             am_cod = disentangle(str(cod.seq))
-            for c in am_cod:
-                to_add = ','.join([gene, wt, str(pos), translation_table[c]])
-                if to_add not in all_muts:
-                    all_muts.append(to_add)
+            to_add = set([','.join([gene, wt, str(pos), translation_table[c]]) for c in am_cod])
+            freq = 1. / len(to_add)
+            for t in to_add:
+                all_muts.append(t + ',%4.3f' % freq)
                 #print(','.join([gene, wt, str(pos), translation_table[c]]))
         else:
-            to_add = ','.join([gene, wt, str(pos), aa])
+            to_add = ','.join([gene, wt, str(pos), aa, '1.0'])
             # if to_add not in all_muts:
             all_muts.append(to_add)
     return all_muts
@@ -96,7 +96,7 @@ for mix in mixes:
     prot_muts = parse_muts(str(s.seq), 'protease')
     rt_muts = parse_muts(str(s.seq), 'RT')
     oh = open('%s_mutations.csv' % mix, 'w')
-    oh.write('gene,wt,pos,mut\n')
+    oh.write('gene,wt,pos,mut,freq\n')
     for m in prot_muts:
         oh.write(m + '\n')
     for m in rt_muts:
