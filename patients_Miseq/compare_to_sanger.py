@@ -68,12 +68,12 @@ for k, v in minvar_muts_RT.items():
 
 # consensus B wild type sequences
 wt = pd.DataFrame(columns=['pos', 'gene', 'wt'])
-s = list(SeqIO.parse('protease.fasta', 'fasta'))[0]
+s = list(SeqIO.parse('protease.faa', 'fasta'))[0]
 for i, a in enumerate(s):
     dh = {'pos': i + 1, 'gene': 'protease', 'wt': a}
     wt = wt.append(dh, ignore_index=True)
 
-s = list(SeqIO.parse('RT.fasta', 'fasta'))[0]
+s = list(SeqIO.parse('RT.faa', 'fasta'))[0]
 for i, a in enumerate(s):
     dh = {'pos': i + 1, 'gene': 'RT', 'wt': a}
     wt = wt.append(dh, ignore_index=True)
@@ -82,5 +82,6 @@ all_df = sanger_df.merge(minvar_df, how='outer', on=['gene', 'pos'])
 all_df = all_df.merge(wt, how='inner', on=['gene', 'pos'])
 all_df = all_df[all_df.pos <= 330]
 all_df = all_df.sort(columns=['gene', 'pos'], ascending=[0, 1])
+all_df['pos'] = all_df['pos'].astype(int)
 
-all_df.to_csv(sys.stdout, sep=',', index=False)
+all_df.to_csv(sys.stdout, sep='\t', index=False)

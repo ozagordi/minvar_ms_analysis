@@ -19,7 +19,7 @@ with open(SAMPLES_LIST, 'r') as csvfile:
 rule all:
     input:
         expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
-        expand("summary/comparison_{id}.csv", id=PATIENTS)
+        expand("summary/comparison_{id}.tsv", id=PATIENTS)
 
 rule minvar_run:
     input:
@@ -40,7 +40,7 @@ rule compare:
     input:
         'minvar_results_{id}/annotated_DRM.csv'
     output:
-        'summary/comparison_{id}.csv'
+        'summary/comparison_{id}.tsv'
     shell:
         'compare_to_sanger.py {wildcards.id} > {output}'
 

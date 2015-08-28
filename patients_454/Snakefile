@@ -1,4 +1,5 @@
 
+
 # reference and MiSeq samples
 import os
 import sys
@@ -37,7 +38,7 @@ def get_fastq(wildcards):
 rule all:
     input:
         expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
-        expand("summary/comparison_{id}.csv", id=PATIENTS)
+        expand("summary/comparison_{id}.tsv", id=PATIENTS)
 
 rule mix2sff:
     input:
@@ -73,7 +74,7 @@ rule compare:
     input:
         'minvar_results_{id}/annotated_DRM.csv'
     output:
-        'summary/comparison_{id}.csv'
+        'summary/comparison_{id}.tsv'
     shell:
         'compare_to_sanger.py {wildcards.id} > {output}'
 
