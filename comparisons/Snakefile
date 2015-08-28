@@ -1,13 +1,14 @@
-MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
-
+MIXES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 
 rule all:
     input:
         expand('minvar_expanded_{id}.csv', id=MIXES),
         expand('minvar_454_expanded_{id}.csv', id=MIXES),
         expand('virvar_expanded_{id}.csv', id=MIXES),
-        expand('truth_expanded_{id}.csv', id=MIXES)
-
+        expand('truth_expanded_{id}.csv', id=MIXES),
+        'F1_all.pdf',
+        'precision_recall_all.pdf',
+        'mut_D67d.csv'
 
 rule expand:
     input:
@@ -25,3 +26,20 @@ rule expand:
         expand_mutations.py {input.minvar_454} > {output.minvar_454}; \
         expand_mutations.py {input.virvar} > {output.virvar}; \
         expand_mutations.py {input.truth} > {output.truth}'
+
+rule plot:
+    input:
+
+    output:
+        'F1_all.pdf',
+        'precision_recall_all.pdf'
+    shell:
+        'Rscript precrec.R; rm Rplots.pdf'
+
+rule detect_mut:
+    input:
+
+    output:
+        'mut_D67d.csv'
+    shell:
+        'Rscript detect_single_mutation.R > mut_D67d.csv'

@@ -6,7 +6,7 @@ from Bio import SeqIO
 
 SAMPLES_LIST = '/home/ozagordi/Projects/MinVar/data/MinVarSamples.csv'
 MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
-MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
+MIXES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 
 run_dict = {}
 with open(SAMPLES_LIST, 'r') as csvfile:
@@ -37,7 +37,7 @@ rule all:
     input:
         #'fastq_dir/9.sff'
         expand("images/scatter_plot_mix_{id}.pdf", id=MIXES),
-        expand("summary/precrec_{id}.csv", id=MIXES)
+        #expand("summary/precrec_{id}.csv", id=MIXES)
 
 rule mix2sff:
     input:
@@ -77,13 +77,13 @@ rule plots:
     run:
         shell("Rscript scatterplots.R {wildcards.id}")
 
-rule precrec:
-    input:
-        "minvar_results_{id}/annotated_DRM.csv"
-    output:
-        "summary/precrec_{id}.csv"
-    run:
-        shell("Rscript precrec.R {wildcards.id}")
+# rule precrec:
+#     input:
+#         "minvar_results_{id}/annotated_DRM.csv"
+#     output:
+#         "summary/precrec_{id}.csv"
+#     run:
+#         shell("Rscript precrec.R {wildcards.id}")
 
 # onsuccess:
 #     try:

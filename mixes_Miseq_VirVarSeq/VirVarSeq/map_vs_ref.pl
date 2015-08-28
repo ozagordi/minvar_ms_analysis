@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-use Files;
 use Log;
+use Files;
 use Getopt::Long;
 use Pod::Usage;
 
@@ -16,7 +16,7 @@ my ($man, $help) =0;
 my ($sample_file, $ref, $project_in, $project_out) = "";
 my $mapping		= "single";
 my $map_vs_ref		= "map_vs_ref";
-my $sample_prefix 	= "fastq_dir_"; 
+my $sample_prefix 	= "fastq_dir_";
 my $fastq		= "fastq";
 my $parameters 		= " -t 8 -q 15 -n 12 -k 6 ";
 

@@ -73,9 +73,13 @@ def parse_muts(s, gene):
         if gene == 'RT':
             pos -= 99
         aa = str(cod.seq.translate())
+        if pos == 67 and gene == 'RT':
+            print(wt, aa, cod.seq)
         if aa == wt:
             continue
-        if aa == 'X':
+        # Biopython translates to ambiguous amminoacids, as in
+        # RAT [AAT / GAT] -> B (aspartic acid or asparagine). We don't want it
+        if aa == 'X' or aa not in translation_table.keys():
             am_cod = disentangle(str(cod.seq))
             to_add = set([','.join([gene, wt, str(pos), translation_table[c]]) for c in am_cod])
             freq = 1. / len(to_add)
@@ -88,7 +92,7 @@ def parse_muts(s, gene):
             all_muts.append(to_add)
     return all_muts
 
-mixes = ['Mix_%d' % i for i in [9, 11, 12, 17, 18, 19, 20]]
+mixes = ['Mix_%d' % i for i in [9, 11, 12, 13, 17, 18, 19, 20, 21]]
 infile = 'Mix_1-24_CS_Aligned.fas'
 seqs = SeqIO.to_dict(SeqIO.parse(infile, 'fasta'))
 for mix in mixes:

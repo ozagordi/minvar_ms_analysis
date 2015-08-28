@@ -9,6 +9,7 @@ region_start=169
 region_len=429
 qv=30
 
+export PERL5LIB=$VirVarSeq_dir/lib
 $VirVarSeq_dir/map_vs_ref.pl --samplelist $samples --ref $ref --indir $indir --outdir $outdir --mapping single #> VirVarSeq.log 2>&1
 $VirVarSeq_dir/consensus.pl --samplelist $samples --ref $ref --indir $indir --outdir $outdir --start $startpos --end $endpos #>> VirVarSeq.log 2>&1
 $VirVarSeq_dir/map_vs_consensus.pl --samplelist $samples --indir $indir --outdir $outdir --mapping single #>> VirVarSeq.log 2>&1

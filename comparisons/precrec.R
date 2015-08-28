@@ -37,7 +37,7 @@ single_prec_rec = function(sv){
 
 df = data.frame(mix=numeric(), platform=character(), tool=character(),
     precision=numeric(), recall=numeric())
-for(mix_number in c(9, 10, 11, 12, 17, 18, 19, 20)){
+for(mix_number in c(9, 10, 11, 12, 13, 17, 18, 19, 20, 21)){
     print("")
     cat(paste("Doing now", mix_number, "  ---  "))
     # parse files

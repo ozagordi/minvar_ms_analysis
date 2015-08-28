@@ -4,7 +4,7 @@ import os
 import glob
 MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
 MISEQDIR = '/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls'
-MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
+MIXES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 for i in MIXES:
     os.symlink('%s/%d_S%d_L001_R1_001.fastq.gz' % (MISEQDIR, i, i - 8),
                'fastq_dir/%d_L001_R1_001.fastq.gz' % i)
@@ -13,7 +13,7 @@ rule all:
     input:
         #expand("minvar_results_{id}/annotated_DRM.csv", id=MIXES)
         expand("images/scatter_plot_mix_{id}.pdf", id=MIXES),
-        expand("summary/precrec_{id}.csv", id=MIXES)
+        #expand("summary/precrec_{id}.csv", id=MIXES)
 
 rule minvar:
     input:
@@ -35,18 +35,22 @@ rule plots:
     run:
         shell("Rscript scatterplots.R {wildcards.id}")
 
-rule precrec:
-    input:
-        "minvar_results_{id}/annotated_DRM.csv"
-    output:
-        "summary/precrec_{id}.csv"
-    run:
-        shell("Rscript precrec.R {wildcards.id}")
+# rule precrec:
+#     input:
+#         "minvar_results_{id}/annotated_DRM.csv"
+#     output:
+#         "summary/precrec_{id}.csv"
+#     run:
+#         shell("Rscript precrec.R {wildcards.id}")
 
 onsuccess:
     try:
         os.remove('Rplots.pdf')
     except FileNotFoundError:
         pass
+    for i in MIXES:
+        os.remove('fastq_dir/%d_L001_R1_001.fastq.gz' % i)
+
+onerror:
     for i in MIXES:
         os.remove('fastq_dir/%d_L001_R1_001.fastq.gz' % i)

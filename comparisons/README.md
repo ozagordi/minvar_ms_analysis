@@ -11,10 +11,7 @@ is equivalent to the cases where only the mutant was detected.
 
 
 # What to run
-First expand mutations as explained above, then R script `precrec.R`
-
-    [ozagordi@virologysrv04 comparisons]$ expand_mutations.py
-    [ozagordi@virologysrv04 comparisons]$ Rscript precrec.R
-
+Snakefile first expand mutations as explained above, then calls the R script
+`precrec.R`.
 This makes two figures: bar plots of F1 and, separately, precision/recall.
 Further, it outputs a table with all numbers.

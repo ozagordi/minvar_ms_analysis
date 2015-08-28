@@ -5,7 +5,7 @@ import subprocess
 REF = './db/consensus_B.fna'
 RECAL_EXE = './recal_fastq.py'
 MISEQDIR = '/data/MiSeq/MiSeqOutput/130327_M01274_0011_000000000-A3FJ8/Data/Intensities/BaseCalls'
-MIXES = [9, 10, 11, 12, 17, 18, 19, 20]
+MIXES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 # this is used to solve the double id in sample names (9_S1, 10_S2 and so on)
 for i in MIXES:
     try:
@@ -23,7 +23,7 @@ rule all:
         #expand('sample_{id}.txt', id=MIXES)
         #expand("VirVarSeq_results/mutations/mutations_mapped_{sample}.csv", sample=SAMPLES)
         expand("images/scatter_plot_mix_{id}.pdf", id=MIXES),
-        expand("summary/precrec_{id}.csv", id=MIXES)
+        #expand("summary/precrec_{id}.csv", id=MIXES)
 
 
 rule sample_fastq:
@@ -69,13 +69,13 @@ rule plots:
     run:
         shell("Rscript scatterplots.R {wildcards.id}")
 
-rule precrec:
-    input:
-        "VirVarSeq_results/mutations/mutations_mapped_{id}.csv"
-    output:
-        "summary/precrec_{id}.csv"
-    run:
-        shell("Rscript precrec.R {wildcards.id}")
+# rule precrec:
+#     input:
+#         "VirVarSeq_results/mutations/mutations_mapped_{id}.csv"
+#     output:
+#         "summary/precrec_{id}.csv"
+#     run:
+#         shell("Rscript precrec.R {wildcards.id}")
 
 onsuccess:
     try:
@@ -83,8 +83,6 @@ onsuccess:
     except FileNotFoundError:
         pass
     for i in MIXES:
-#        os.remove('fastq_dir_%d/%d_L001_R1_001.fastq.gz' % (i, i))
-#        os.rmdir('fastq_dir_%d' % i)
         os.remove('linked/%d_L001_R1_001.fastq.gz' % (i))
 
 onerror:
@@ -93,6 +91,4 @@ onerror:
     except FileNotFoundError:
         pass
     for i in MIXES:
-#        os.remove('fastq_dir_%d/%d_L001_R1_001.fastq.gz' % (i, i))
-#        os.rmdir('fastq_dir_%d' % i)
         os.remove('linked/%d_L001_R1_001.fastq.gz' % (i))
