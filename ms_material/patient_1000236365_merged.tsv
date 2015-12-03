@@ -1,0 +1,44 @@
+gene	pos	Sanger	MinVar	wt
+protease	10	['I']	['I_24', 'R_17', 'G_5', 'P_5', 'S_4', 'K_3', 'F_3', 'N_3', 'D_2', 'Q_2', 'A_2']	L
+protease	13	['V']	['V_100']	I
+protease	14	['K', 'R']	['R_25', 'T_12', 'S_5', 'P_5', 'L_4', 'D_3', 'Q_2', 'G_2', 'Y_2', 'E_2']	K
+protease	16	['E']	['E_100']	G
+protease	20	['I']	['I_42', 'L_17', 'T_6', 'D_5', 'N_3', 'R_2', '*_2', 'F_2', 'S_2']	K
+protease	35	['Q']	['Q_100']	E
+protease	36	['I', 'V']	['I_56', 'V_32']	M
+protease	39	['P', 'S']	['S_68']	P
+protease	41	['K']	['K_100']	R
+protease	57	['K', 'R']	['K_26']	R
+protease	62	['I', 'V']	['V_70']	I
+protease	69	['K']	['K_97']	H
+protease	70		['R_4']	K
+protease	74	['T', 'S']	['S_74']	T
+protease	89	['M']	['M_100']	L
+protease	90	['M', 'L']	['M_61']	L
+RT	5	['I', 'V']	['V_45']	I
+RT	6	['K', 'E']	['K_54']	E
+RT	35	['T']	['T_84', 'H_5', 'I_4', 'L_2']	V
+RT	39	['K']	['K_100']	T
+RT	43	['Q']	['Q_100']	K
+RT	104	['K', 'R']	['R_42']	K
+RT	122	['E']	['E_95']	K
+RT	123	['S']	['S_95']	D
+RT	142		['V_8']	I
+RT	162	['A']	['A_96']	S
+RT	173	['A']	['A_92', 'T_4']	K
+RT	174	['K']	['K_100']	Q
+RT	177	['E']	['E_100']	D
+RT	200	['A']	['A_100']	T
+RT	207	['E']	['E_87']	Q
+RT	211	['K']	['K_97']	R
+RT	214	['L', 'F']	['L_45']	F
+RT	245	['Q']	['Q_91']	V
+RT	250		['E_8']	D
+RT	286	['A']	['A_100']	T
+RT	291	['D']	['D_100']	E
+RT	292	['I', 'V']	['I_56']	V
+RT	293	['V']	['V_100']	I
+RT	294	['T']	['T_94']	P
+RT	311	['R']	['R_100']	K
+RT	322	['A']	['A_100']	S
+RT	326	['I', 'V']	['V_47']	I

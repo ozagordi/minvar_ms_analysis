@@ -92,7 +92,7 @@ def parse_muts(s, gene):
             all_muts.append(to_add)
     return all_muts
 
-mixes = ['Mix_%d' % i for i in [9, 11, 12, 13, 17, 18, 19, 20, 21]]
+mixes = ['Mix_%d' % i for i in [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]]
 infile = 'Mix_1-24_CS_Aligned.fas'
 seqs = SeqIO.to_dict(SeqIO.parse(infile, 'fasta'))
 for mix in mixes:

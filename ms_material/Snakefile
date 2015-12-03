@@ -1,0 +1,55 @@
+#!/usr/bin/env python3.4
+
+import subprocess
+import glob
+import pandas as pd
+
+mixes = ['GEO', '20-20', '60-10', '80-5', '90-2.5']
+platforms = ['454', 'Miseq']
+pat_2_file = '../patients_set_2/Minority24.tsv'
+pat_2_dict = {}
+for l in open(pat_2_file):
+    pat_id = l.split('\t')[0]
+    typ = l.strip().split('\t')[-1].split('_')[0]
+    pat_2_dict[pat_id] = typ
+
+rule all:
+    input:
+        expand('boxplot_mix_unique_{platform}_{mix}.pdf', platform=platforms, mix=mixes),
+        expand('patient_{n}_merged.tsv', n=range(1, 11)),
+        expand('patient_{id}_merged.tsv', id=pat_2_dict.keys())
+
+rule Rplots:
+    input:
+        'scatter_box_plot.R'
+    output:
+        'boxplot_mix_unique_{platform}_{mix}.pdf'
+    shell:
+        'Rscript scatterplot.R {wildcards.platform} {wildcards.mix}'
+
+rule patients_set_1:
+    input:
+        in_454 = '../patients_set_1_454/summary/comparison_{n}.tsv',
+        in_miseq = '../patients_set_1_Miseq/summary/comparison_{n}.tsv'
+    output:
+        'patient_{n}_merged.tsv'
+    run:
+        df_454 = pd.read_csv(input[0], sep='\t')
+        df_miseq = pd.read_csv(input[1], sep='\t')
+
+        full = pd.merge(df_454, df_miseq, how='outer', on=['gene', 'pos', 'wt'],
+                        suffixes=('_454', '_Miseq'))
+        full = full.drop('Sanger_454', axis=1)
+        full = full.rename(columns={'Sanger_Miseq': 'Sanger'})
+        full['pos'] = full['pos'].astype(int)
+        full = full.sort(columns=['gene', 'pos'], ascending=[0, 1])
+        # full = full.where(pd.notnull(full), None)
+        full.to_csv(output[0], sep='\t', index=False)
+
+rule patients_set_2:
+    input:
+        '../patients_set_2/summary/comparison_{id}.tsv'
+    output:
+        'patient_{id}_merged.tsv'
+    shell:
+        'cp {input} {output}'

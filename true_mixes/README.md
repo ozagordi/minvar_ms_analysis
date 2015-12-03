@@ -22,3 +22,7 @@ format saved in `sequenced_clones.tsv` was converted into csv with `parse_hivdb_
 
 `create_mixes.py` was called to create csv file with the expected frequencies,
 `./create_mixes.py 10 > mix_10.csv` and so on.
+
+## Check
+This is used to create a scatter plot of two identical mixes at different viral
+load to check that frequencies match.

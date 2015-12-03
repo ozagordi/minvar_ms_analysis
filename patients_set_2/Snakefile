@@ -1,0 +1,60 @@
+import os
+import os.path
+import glob
+import shutil
+import subprocess
+
+SAMPLES_LIST = '/home/ozagordi/Dropbox/Projects/MinVar/DiagnosticData/Minority24.tsv'
+SAMPLES_DIR = '/data/MiSeq/MiSeqOutput/150122_M02081_0078_000000000-ABFYA/Data/Intensities/BaseCalls/'
+MINVAR_EXE = '/home/ozagordi/Dropbox/Software/MinVar/bin/minvar'
+PATIENTS = {}
+with open(SAMPLES_LIST, 'r') as tsvfile:
+    for l in tsvfile:
+        k = l.split('\t')[0]
+        #print(k)
+        PATIENTS[k] = glob.glob('%s%s*' % (SAMPLES_DIR, k))[0]
+
+rule all:
+    input:
+        'boxplot.pdf',
+        # expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS)
+        expand("summary/comparison_{id}.tsv", id=PATIENTS)
+
+rule minvar_run:
+    input:
+
+    output:
+        'minvar_results_{id}/annotated_DRM.csv',
+        odir='minvar_results_{id}',
+        logfile="minvar_results_{id}/minvar_{id}.err"
+    message:
+        "Executing minvar for sample {wildcards.id}."
+    run:
+        sid = '{}'.format(wildcards.id)
+        fastq_file = PATIENTS[sid]
+        shell("cd {output.odir}; \
+        {MINVAR_EXE} -f {fastq_file} &>> ../{output.logfile}")
+
+rule count_reads:
+    input:
+        expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS)
+    output:
+        'reads_count.csv'
+    shell:
+        'count_mapped_reads.py > reads_count.csv'
+
+rule plot:
+    input:
+        'reads_count.csv'
+    output:
+        'boxplot.pdf'
+    shell:
+        'Rscript boxplot.R'
+
+rule compare_patients:
+    input:
+        'minvar_results_{id}/annotated_DRM.csv'
+    output:
+        'summary/comparison_{id}.tsv'
+    shell:
+        'compare_to_sanger.py {wildcards.id} > {output}'

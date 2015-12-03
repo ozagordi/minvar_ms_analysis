@@ -7,7 +7,11 @@ rule all:
         expand('virvar_expanded_{id}.csv', id=MIXES),
         expand('truth_expanded_{id}.csv', id=MIXES),
         'F1_all.pdf',
-        'precision_recall_all.pdf',
+        'precision_all.pdf',
+        'recall_all.pdf',
+        'F1_low_freq.pdf',
+        'precision_low_freq.pdf',
+        'recall_low_freq.pdf',
         'mut_D67d.csv'
 
 rule expand:
@@ -32,7 +36,11 @@ rule plot:
 
     output:
         'F1_all.pdf',
-        'precision_recall_all.pdf'
+        'precision_all.pdf',
+        'recall_all.pdf',
+        'F1_low_freq.pdf',
+        'precision_low_freq.pdf',
+        'recall_low_freq.pdf'
     shell:
         'Rscript precrec.R; rm Rplots.pdf'
 
