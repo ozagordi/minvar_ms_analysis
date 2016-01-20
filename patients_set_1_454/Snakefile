@@ -37,8 +37,9 @@ def get_fastq(wildcards):
 
 rule all:
     input:
-        expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
-        expand("summary/comparison_{id}.tsv", id=PATIENTS)
+        # expand('minvar_results_{id}/annotated_DRM.csv', id=PATIENTS),
+        # expand("summary/comparison_{id}.tsv", id=PATIENTS)
+        expand('fastq_dir/{id}.fastq', id=PATIENTS)
 
 rule mix2sff:
     input:

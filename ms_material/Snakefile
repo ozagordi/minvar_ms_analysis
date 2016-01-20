@@ -15,7 +15,7 @@ for l in open(pat_2_file):
 
 rule all:
     input:
-        expand('boxplot_mix_unique_{platform}_{mix}.pdf', platform=platforms, mix=mixes),
+        expand('boxplot_mix_unique_{platform}_{mix}.eps', platform=platforms, mix=mixes),
         expand('patient_{n}_merged.tsv', n=range(1, 11)),
         expand('patient_{id}_merged.tsv', id=pat_2_dict.keys())
 
@@ -23,9 +23,9 @@ rule Rplots:
     input:
         'scatter_box_plot.R'
     output:
-        'boxplot_mix_unique_{platform}_{mix}.pdf'
+        'boxplot_mix_unique_{platform}_{mix}.eps'
     shell:
-        'Rscript scatterplot.R {wildcards.platform} {wildcards.mix}'
+        'Rscript scatter_box_plot.R {wildcards.platform} {wildcards.mix}'
 
 rule patients_set_1:
     input:

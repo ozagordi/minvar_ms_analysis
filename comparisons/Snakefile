@@ -1,3 +1,4 @@
+
 MIXES = [9, 10, 11, 12, 13, 17, 18, 19, 20, 21]
 
 rule all:
@@ -6,12 +7,12 @@ rule all:
         expand('minvar_454_expanded_{id}.csv', id=MIXES),
         expand('virvar_expanded_{id}.csv', id=MIXES),
         expand('truth_expanded_{id}.csv', id=MIXES),
-        'F1_all.pdf',
-        'precision_all.pdf',
-        'recall_all.pdf',
-        'F1_low_freq.pdf',
-        'precision_low_freq.pdf',
-        'recall_low_freq.pdf',
+        'F1_all.eps',
+        'precision_all.eps',
+        'recall_all.eps',
+        'F1_low_freq.eps',
+        'precision_low_freq.eps',
+        'recall_low_freq.eps',
         'mut_D67d.csv'
 
 rule expand:
@@ -35,14 +36,15 @@ rule plot:
     input:
 
     output:
-        'F1_all.pdf',
-        'precision_all.pdf',
-        'recall_all.pdf',
-        'F1_low_freq.pdf',
-        'precision_low_freq.pdf',
-        'recall_low_freq.pdf'
+        'F1_all.eps',
+        'precision_all.eps',
+        'recall_all.eps',
+        'F1_low_freq.eps',
+        'precision_low_freq.eps',
+        'recall_low_freq.eps'
     shell:
-        'Rscript precrec.R; rm Rplots.pdf'
+        'Rscript precrec.R'
+        #; rm Rplots.pdf'
 
 rule detect_mut:
     input:

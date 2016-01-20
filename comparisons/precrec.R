@@ -34,7 +34,7 @@ graph_results = function(all_res, suffix_name, meas_to_plot){
         theme(axis.text.x=element_text(angle=45, vjust=0.9, hjust=1., size=12)) +
         xlab('mix type') + ylab(meas_to_plot) +
         guides(fill=guide_legend(title="platform / tool"))
-    ggsave(paste0(meas_to_plot, "_", suffix_name, ".pdf"))
+    ggsave(paste0(meas_to_plot, "_", suffix_name, ".eps"), width=120, height=200, unit='mm')
 
     # all_res %>%
     #     gather(measure, value, c(precision, recall, F1)) %>%

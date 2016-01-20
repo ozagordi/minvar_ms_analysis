@@ -77,16 +77,17 @@ p = ggplot(df_results, aes(x=expected, y=measured, color=gene)) +
   geom_point(aes(shape=factor(gene)),
              position=position_jitter(width=0.02, height=0.0),
              size=1.8, solid=FALSE) +
+  coord_fixed() +
   facet_grid(. ~ mix) +
-  scale_x_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
-  scale_y_continuous(limits=c(-0.03, 1.03), breaks=seq(0, 1, 0.1)) +
+  scale_x_continuous(limits=c(-0.03, 0.83), breaks=seq(0, 1, 0.1)) +
+  scale_y_continuous(limits=c(-0.03, 0.83), breaks=seq(0, 1, 0.1)) +
   scale_shape(solid=FALSE) +
   #guides(color=FALSE) +
   guides(color=FALSE, shape=FALSE) +
   theme_bw()
 
-gname = paste0("scatter_plot_mix_", platform, "_", mix_in, ".pdf")
-ggsave(file=gname, width=200, height=120, unit='mm')
+gname = paste0("scatter_plot_mix_", platform, "_", mix_in, ".eps")
+ggsave(file=gname, unit='mm')#, width=200, height=120,)
 
 # Now for mutations identified as unique
 
@@ -102,5 +103,5 @@ p = ggplot(unique_muts, aes(x=clone, y=measured)) +
   guides(shape=FALSE) +
   theme_bw()
 
-gname = paste0("boxplot_mix_unique_", platform, "_", mix_in, ".pdf")
+gname = paste0("boxplot_mix_unique_", platform, "_", mix_in, ".eps")
 ggsave(file=gname, width=200, height=120, unit='mm')
